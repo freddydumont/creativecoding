@@ -45,7 +45,9 @@ const sketch = () => {
 
     /** Draw and fill a trapezoid */
     function drawTrapezoid([x1, y1], [x2, y2], color) {
-      context.lineWidth = 4;
+      context.strokeStyle = 'white';
+      context.lineWidth = 12;
+      context.lineCap = 'round';
       context.beginPath();
       context.moveTo(x1, y1);
       context.lineTo(x2, y2);
@@ -64,11 +66,6 @@ const sketch = () => {
     const lerpedPoints = points.map(({ position: [u, v], ...rest }) => {
       const x = lerpWidth(u);
       const y = lerpHeight(v);
-
-      context.beginPath();
-      context.arc(x, y, 12, 0, Math.PI * 2, false);
-      context.fillStyle = 'black';
-      context.fill();
 
       return {
         ...rest,
