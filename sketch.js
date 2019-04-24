@@ -13,7 +13,7 @@ const sketch = () => {
 
   const createGrid = () => {
     const points = [];
-    const count = 50;
+    const count = 6;
 
     for (let x = 0; x < count; x++) {
       for (let y = 0; y < count; y++) {
@@ -34,31 +34,63 @@ const sketch = () => {
     return points;
   };
 
-  const points = createGrid().filter(() => random.value() > 0.5);
-  const margin = 400;
+  const points = createGrid();
 
   return ({ context, width, height }) => {
+    const margin = width * 0.175;
+
+    const lerpWidth = (x) => lerp(margin, width - margin, x);
+    const lerpHeight = (y) => lerp(margin, height - margin, y);
+
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
 
-    points.forEach(({ position: [u, v], radius, color, rotation }) => {
-      const x = lerp(margin, width - margin, u);
-      const y = lerp(margin, height - margin, v);
+    // draw point grid and return an array of usable
+    const lerpedPoints = points.map(({ position: [u, v], ...rest }) => {
+      const x = lerpWidth(u);
+      const y = lerpHeight(v);
 
-      // context.beginPath();
-      // context.arc(x, y, radius * width, 0, Math.PI * 2, false);
-      // context.fillStyle = color;
-      // context.fill();
+      context.beginPath();
+      context.arc(x, y, 12, 0, Math.PI * 2, false);
+      context.fillStyle = 'black';
+      context.fill();
 
-      context.save();
-      context.fillStyle = color;
-      context.font = `${radius * width * 2}px "monospace"`;
-      context.translate(x, y);
-      context.rotate(rotation);
-      context.fillText('\\\\', 0, 0);
-
-      context.restore();
+      return {
+        ...rest,
+        position: [x, y],
+      };
     });
+
+    const shuffled = random.shuffle(lerpedPoints);
+
+    // do the following until there is no more points
+    while (shuffled.length > 0) {
+      // connect two random points on the grid
+      //  - get two different random positions
+      const [
+        {
+          position: [x1, y1],
+          color,
+        },
+        {
+          position: [x2, y2],
+        },
+      ] = shuffled.splice(0, 2);
+
+      // draw and fill a trapezoid
+      context.lineWidth = 6;
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.lineTo(x2, lerpWidth(1));
+      context.lineTo(x1, lerpWidth(1));
+      context.lineTo(x1, y1);
+      context.fillStyle = color;
+      context.fill();
+      context.stroke();
+
+      const averageY = (y1 + y2) / 2;
+    }
   };
 };
 
